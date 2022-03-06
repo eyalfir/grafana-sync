@@ -99,6 +99,13 @@ if __name__ == '__main__':
     LABEL_FOLDER_NAME = "%s.folder" % LABEL_PREFIX
     LABEL_UID = "%s.uid" % LABEL_PREFIX
     LABEL_VERSION = '%s.last_synced_version' % LABEL_PREFIX
+    try:
+        kubernetes.config.load_incluster_config()
+    except kubernetes.config.ConfigException:
+        try:
+            kubernetes.config.load_kube_config()
+        except kubernetes.config.ConfigException:
+            raise Exception("Could not configure kubernetes python client")
     kubernetes.config.load_kube_config()
     client = kubernetes.client.CoreV1Api()
     grafana = requests.Session()
