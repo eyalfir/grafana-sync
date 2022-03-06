@@ -106,7 +106,6 @@ if __name__ == '__main__':
             kubernetes.config.load_kube_config()
         except kubernetes.config.ConfigException:
             raise Exception("Could not configure kubernetes python client")
-    kubernetes.config.load_kube_config()
     client = kubernetes.client.CoreV1Api()
     grafana = requests.Session()
     grafana.headers.update({'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % API_KEY})
