@@ -28,7 +28,7 @@ def post(dashboard, uid=None):
     clean_dashboard_object(body)
     post_obj = {
       "dashboard": body,
-      "folderUid": "PKgcGoYnz",
+      "folderUid": dashboard.metadata.labels.get(LABEL_FOLDER_NAME),
       "message": "synced from source code",
       "overwrite": bool(uid)
     }
