@@ -10,6 +10,8 @@ import os
 import argparse
 from vyper import v as vyper
 
+UNSPECIFIED_VERSION = 'UNKNOWN'
+
 
 def dict_equal(d1, d2):
     return json.dumps(d1, sort_keys=True) == json.dumps(d2, sort_keys=True)
@@ -19,7 +21,7 @@ def set_label(obj, labels):
     client.patch_namespaced_config_map(obj.metadata.name, obj.metadata.namespace, patch)
 
 def clean_dashboard_object(obj):
-    for k in ['uid', 'version', 'id']:
+    for k in ['iteration', 'uid', 'version', 'id']:
         if k in obj:
             del obj[k]
 
@@ -35,6 +37,15 @@ def post(dashboard, uid=None):
     if uid:
         body['uid'] = uid
     response = grafana.post(GRAFANA + '/api/dashboards/db', headers={'Authorization': 'Bearer %s' % API_KEY, 'Content-Type': 'application/json'}, json=post_obj)
+    if response.status_code == 412:
+        logging.info('a dashboard with the same title as %s/%s already exists, searching' % (dashboard.metadata.namespace, dashboard.metadata.name))
+        search_response = grafana.get(GRAFANA +'/api/search', params={'query': body['title'], 'folderIds': dashboard.metadata.labels.get(LABEL_FOLDER_NAME)})
+        search_response.raise_for_status()
+        if len(search_response.json()) != 1:
+            logging.exception('error encountered when trying to search for existing dashboard for %s/%s. (title = %s)' % (dashboard.metadata.namespace, dashboard.metadata.name, body['title']))
+        uid = search_response.json()[0]['uid']
+        set_label(dashboard, {LABEL_VERSION: str(UNSPECIFIED_VERSION), LABEL_UID: str(uid)})
+        return UNSPECIFIED_VERSION
     response.raise_for_status()
     set_label(dashboard, {LABEL_VERSION: str(response.json()['version']), LABEL_UID: response.json()['uid']})
     return response.json()['version']
@@ -55,12 +66,12 @@ def handle_dashboard(dashboard):
             return False
     else:
         existing_dashboard = get_dashboard(uid)
-        last_synced_version = int(dashboard.metadata.labels[LABEL_VERSION])
+        last_synced_version = dashboard.metadata.labels.get(LABEL_VERSION, UNSPECIFIED_VERSION)
         actual_version = existing_dashboard['dashboard']['version']
         content_spec = json.loads(dashboard.data['json'])
         clean_dashboard_object(existing_dashboard['dashboard'])
         clean_dashboard_object(content_spec)
-        if last_synced_version == actual_version:
+        if last_synced_version == UNSPECIFIED_VERSION or int(last_synced_version) == int(actual_version):
 
             if dict_equal(content_spec, existing_dashboard['dashboard']):
                 logging.debug('dashboard %s/%s is identical to actual, no need to update' % (dashboard.metadata.namespace, dashboard.metadata.name))
