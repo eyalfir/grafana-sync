@@ -5,3 +5,4 @@ grafana:
   apiKey: UNKNOWN
 secretName: grafana-api-key
 podSpecAnnotations: {}
+debug: false
