@@ -27,7 +27,7 @@ spec:
           valueFrom:
             secretKeyRef:
               key: api_key
-              name: {{ .Values.secret_name }}
+              name: {{ .Values.secretName }}
         image: docker.io/eyalfirst/grafana-k8s-sync:0.0.5
         name: main
         resources:
