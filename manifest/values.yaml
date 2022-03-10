@@ -1,0 +1,6 @@
+replicas: 1
+monitorAllNamespaces: true
+grafana:
+  url: http://localhost
+  apiKey: UNKNOWN
+secretName: grafana-api-key

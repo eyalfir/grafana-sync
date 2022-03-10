@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-sync
+  namespace: grafana-sync
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: grafana-sync
+  template:
+    metadata:
+      labels:
+        app: grafana-sync
+      name: grafana-sync
+    spec:
+      serviceAccountName: grafana-sync
+      containers:
+      - env:
+        - name: GRAFANA_SYNC_DEBUG
+          value: {{ .Values.debug }}
+        - name: GRAFANA_SYNC_GRAFANA_URL
+          value: {{ .Values.grafana.url }}
+        - name: GRAFANA_SYNC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: api_key
+              name: {{ .Values.secret_name }}
+        image: docker.io/eyalfirst/grafana-k8s-sync:0.0.5
+        name: main
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 256Mi
