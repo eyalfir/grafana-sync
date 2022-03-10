@@ -19,8 +19,10 @@ spec:
       serviceAccountName: grafana-sync
       containers:
       - env:
+{{ if .Values.debug }}
         - name: GRAFANA_SYNC_DEBUG
-          value: {{ .Values.debug }}
+          value: "1"
+{{ end }}
         - name: GRAFANA_SYNC_GRAFANA_URL
           value: {{ .Values.grafana.url }}
         - name: GRAFANA_SYNC_API_KEY
