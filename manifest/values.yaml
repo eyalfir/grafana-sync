@@ -4,3 +4,4 @@ grafana:
   url: http://localhost
   apiKey: UNKNOWN
 secretName: grafana-api-key
+podSpecAnnotations: {}

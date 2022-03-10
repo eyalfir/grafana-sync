@@ -10,6 +10,8 @@ spec:
       app: grafana-sync
   template:
     metadata:
+      annotations:
+        {{ .Values.podSpecAnnotations | toYaml }}
       labels:
         app: grafana-sync
       name: grafana-sync
